@@ -1,0 +1,21 @@
+name: MinigamesPlugin
+version: 1.0-SNAPSHOT
+main: com.minecraft.queueplugin.QueuePlugin
+api-version: '1.21'
+description: A minigames plugin with queue system and voting
+commands:
+  game:
+    description: Game commands
+    usage: /game <queue|start|addwin>
+    permission: queueplugin.queue
+  vote:
+    description: Vote for game modes
+    usage: /vote <gamemode> or /vote gui
+    permission: queueplugin.vote
+permissions:
+  queueplugin.queue:
+    description: Allows using game queue commands
+    default: op
+  queueplugin.vote:
+    description: Allows voting for game modes
+    default: true

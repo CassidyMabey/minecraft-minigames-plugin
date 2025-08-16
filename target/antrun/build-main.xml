@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="maven-antrun-" default="main">
+  <target name="main">
+    <copy file="C:\Users\Admin\Documents\darsh\fallguys\target/queueplugin-1.0-SNAPSHOT.jar" todir="C:/Users/Admin/Documents/servers/1.21.1-paper/plugins" />
+  </target>
+</project>
