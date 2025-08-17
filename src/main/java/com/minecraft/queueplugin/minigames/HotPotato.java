@@ -127,11 +127,11 @@ public class HotPotato implements Listener {
             }
         }
         
-        Bukkit.broadcastMessage("§e§l========== HOT POTATO ==========");
+        Bukkit.broadcastMessage("§e§l        HOT POTATO        ");
         Bukkit.broadcastMessage("§c" + potatoCount + " players have the hot potato!");
         Bukkit.broadcastMessage("§eHit someone to pass the potato!");
         Bukkit.broadcastMessage("§7Don't be holding a potato when time runs out!");
-        Bukkit.broadcastMessage("§e§l===============================");
+        Bukkit.broadcastMessage("§e§l                           ");
         
         
         startFreezeCountdown();
@@ -315,7 +315,7 @@ public class HotPotato implements Listener {
         
         EntityDamageByEntityEvent.getHandlerList().unregister(this);
         
-        Bukkit.broadcastMessage("§c§l========== TIME'S UP! ==========");
+        Bukkit.broadcastMessage("§c§l        TIME'S UP!        ");
         
         
         if (potatoHolders.isEmpty()) {
@@ -336,7 +336,7 @@ public class HotPotato implements Listener {
             }
         }
         
-        Bukkit.broadcastMessage("§c§l===============================");
+        Bukkit.broadcastMessage("§c§l                           ");
         
         
         awardPointsAndResetPlayers();

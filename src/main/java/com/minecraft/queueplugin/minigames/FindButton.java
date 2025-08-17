@@ -59,7 +59,7 @@ public class FindButton implements Listener {
     
     private final Location minLocation = new Location(null, 155, 80, 239);
     private final Location maxLocation = new Location(null, 163, 80, 247);
-    private final Location teleportLocation = new Location(null, 159, 81, 243); 
+    private final Location teleportLocation = new Location(null, 850, 73, -50); 
     
     
     private final Set<Player> alivePlayers = new HashSet<>();
@@ -139,13 +139,14 @@ public class FindButton implements Listener {
                 
                 player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, Integer.MAX_VALUE, 255, false, false));
                 player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, Integer.MAX_VALUE, 255, false, false));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1, false, false));
                 
                 
                 Material targetItem = availableItems.get(new Random().nextInt(availableItems.size()));
                 playerTargetItems.put(player, targetItem);
                 
-                player.sendMessage("§6§lFind the Item Game Started!");
-                player.sendMessage("§e§lFind: §f" + getItemName(targetItem));
+                player.sendMessage("§6§lFind the Button Game Started!");
+                player.sendMessage("§e§lYou need to find all the buttons hidden in the area!");
             }
         }
         
@@ -155,7 +156,7 @@ public class FindButton implements Listener {
         
         startGameTimeout();
         
-        Bukkit.broadcastMessage("§6§lFIND THE ITEM has started! Find your assigned item!");
+        Bukkit.broadcastMessage("§6§lFIND THE BUTTON has started! Find all the hidden buttons!");
     }
     
     private void setupChestArea() {
@@ -493,6 +494,11 @@ public class FindButton implements Listener {
         Location spawn = Bukkit.getWorlds().get(0).getSpawnLocation();
         
         for (Player player : Bukkit.getOnlinePlayers()) {
+            
+            // Clear ALL potion effects before teleporting back to spawn
+            for (PotionEffect effect : player.getActivePotionEffects()) {
+                player.removePotionEffect(effect.getType());
+            }
             
             player.setWalkSpeed(0.2f);
             player.setFlySpeed(0.1f);

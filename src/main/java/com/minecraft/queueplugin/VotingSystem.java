@@ -191,7 +191,6 @@ public class VotingSystem implements Listener {
         gameModes.put("supersmashsteves", new GameModeInfo("§4§lSuper Smash Steves", Material.IRON_SWORD, "Fight to be the last Steve standing!"));
         gameModes.put("pvp", new GameModeInfo("§4§lTeam Fight", Material.DIAMOND_SWORD, "Fight in epic team battles!"));
         gameModes.put("trytodie", new GameModeInfo("§8§lTry to Die", Material.SKELETON_SKULL, "Die in the most creative way!"));
-        gameModes.put("lavarising", new GameModeInfo("§c§lLava Rising", Material.LAVA_BUCKET, "Escape the rising lava!"));
         
         
         for (String gameMode : gameModes.keySet()) {
@@ -352,9 +351,6 @@ public class VotingSystem implements Listener {
                 case "trytodie":
                     tryToDie.startGame(players);
                     break;
-                case "lavarising":
-                    startLavaRisingGame(players);
-                    break;
                 default:
                     Bukkit.broadcastMessage("§cGame mode not implemented yet: " + mode.displayName);
                     break;
@@ -377,7 +373,7 @@ public class VotingSystem implements Listener {
         
         int totalVotes = gameVotes.values().stream().mapToInt(Integer::intValue).sum();
         
-        Bukkit.broadcastMessage("§6§l=== VOTING UPDATE ===");
+        Bukkit.broadcastMessage("§6§l   VOTING UPDATE   ");
         Bukkit.broadcastMessage("§eTime remaining: §c" + formatTime(timeLeft));
         
         if (totalVotes > 0) {
@@ -418,8 +414,9 @@ public class VotingSystem implements Listener {
         Score timeScore = voting.getScore("§eTime: §c" + formatTime(timeLeft));
         timeScore.setScore(20);
         
-        Score separator1 = voting.getScore("§7═══════════════");
-        separator1.setScore(19);
+        // Empty line between time and gamemodes
+        Score emptyLine = voting.getScore(" ");
+        emptyLine.setScore(19);
         
         
         List<Map.Entry<String, Integer>> sortedVotes = gameVotes.entrySet().stream()
@@ -428,53 +425,31 @@ public class VotingSystem implements Listener {
                 .limit(3)
                 .toList();
         
-        int totalVotes = gameVotes.values().stream().mapToInt(Integer::intValue).sum();
+        int totalVotes = gameVotes.values().stream()
+            .filter(v -> v != null)
+            .mapToInt(Integer::intValue)
+            .sum();
         
         int scoreValue = 18;
-        for (int i = 0; i < sortedVotes.size(); i++) {
+        for (int i = 0; i < sortedVotes.size() && i < 3; i++) {
             Map.Entry<String, Integer> entry = sortedVotes.get(i);
             GameModeInfo mode = gameModes.get(entry.getKey());
             int votes = entry.getValue();
             double percentage = totalVotes > 0 ? (double) votes / totalVotes * 100 : 0;
-            String bar = createPercentageBar(percentage);
             
-            String position = i == 0 ? "§61st" : i == 1 ? "§e2nd" : "§c3rd";
-            
-            
-            String modeText = position + ": " + mode.displayName;
-            for (int j = 0; j < i; j++) {
-                modeText += "§r"; 
+            String color;
+            if (i == 0) {
+                color = "§a"; // Green for 1st place
+            } else if (i == 1) {
+                color = "§e"; // Yellow for 2nd place  
+            } else {
+                color = "§c"; // Red for 3rd place
             }
-            Score modeScore = voting.getScore(modeText);
-            modeScore.setScore(scoreValue--);
             
-            
-            String voteText = "§a" + votes + " votes " + bar;
-            for (int j = 0; j < i; j++) {
-                voteText += "§r"; 
-            }
-            Score voteScore = voting.getScore(voteText);
-            voteScore.setScore(scoreValue--);
-            
-            
-            if (i < sortedVotes.size() - 1) {
-                String sepText = "§7───────────────";
-                for (int j = 0; j <= i; j++) {
-                    sepText += "§r"; 
-                }
-                Score separator = voting.getScore(sepText);
-                separator.setScore(scoreValue--);
-            }
+            String gamemodeText = color + (i + 1) + ". " + mode.displayName + " (" + String.format("%.1f", percentage) + "%)";
+            Score gamemodeScore = voting.getScore(gamemodeText);
+            gamemodeScore.setScore(scoreValue--);
         }
-        
-        
-        String sepText2 = "§7═══════════════";
-        sepText2 += "§r§r"; 
-        Score separator2 = voting.getScore(sepText2);
-        separator2.setScore(scoreValue--);
-        
-        Score totalScore = voting.getScore("§eTotal: §a" + totalVotes + " votes");
-        totalScore.setScore(scoreValue--);
         
         
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -559,7 +534,9 @@ public class VotingSystem implements Listener {
         // Add new vote
         playerVotes.put(playerName, normalizedGameMode);
         Integer currentCount = gameVotes.get(normalizedGameMode);
-        gameVotes.put(normalizedGameMode, (currentCount != null ? currentCount : 0) + 1);        GameModeInfo mode = gameModes.get(normalizedGameMode);
+        gameVotes.put(normalizedGameMode, (currentCount != null ? currentCount : 0) + 1);
+        
+        GameModeInfo mode = gameModes.get(normalizedGameMode);
         player.sendMessage("§aYou voted for " + mode.displayName + "§a!");
         
         return true;
@@ -600,7 +577,10 @@ public class VotingSystem implements Listener {
                 int votes = votesCount != null ? votesCount : 0;
                 lore.add("§eVotes: §a" + votes);
                 
-                int totalVotes = gameVotes.values().stream().mapToInt(Integer::intValue).sum();
+                int totalVotes = gameVotes.values().stream()
+                    .filter(v -> v != null)
+                    .mapToInt(Integer::intValue)
+                    .sum();
                 double percentage = totalVotes > 0 ? (double) votes / totalVotes * 100 : 0;
                 lore.add("§ePercentage: §b" + String.format("%.1f", percentage) + "%");
                 lore.add(createPercentageBar(percentage));
@@ -691,7 +671,7 @@ public class VotingSystem implements Listener {
             Player player = event.getPlayer();
             
             if (args.length == 0) {
-                player.sendMessage("§cUsage: /vote <gamemode> or /vote gui");
+                player.sendMessage("§cUsage: /vote");
                 return;
             }
             
@@ -1027,9 +1007,6 @@ public class VotingSystem implements Listener {
         }, 60L);
     }
     
-    private void startLavaRisingGame(List<Player> players) {
-        plugin.getLogger().info("Lava Rising game started with " + players.size() + " players");
-    }
     
     
     @EventHandler

@@ -276,8 +276,6 @@ public class QueuePlugin extends JavaPlugin implements Listener {
             
             if (queueActive) {
                 objective.getScore("§a§lQUEUE ACTIVE").setScore(scoreValue--);
-                objective.getScore("§eAll players queued!").setScore(scoreValue--);
-                objective.getScore("§7Waiting for OP to start...").setScore(scoreValue--);
             } else {
                 objective.getScore("§7§lQueue inactive").setScore(scoreValue--);
                 objective.getScore("§7Use §a/game queue §7to start").setScore(scoreValue--);
@@ -1300,9 +1298,7 @@ public class QueuePlugin extends JavaPlugin implements Listener {
                         onlinePlayer.sendMessage("§aYou have been added to the game queue!");
                     }
                     
-                    Bukkit.broadcastMessage("§6§l=== GAME QUEUE ACTIVATED ===");
-                    Bukkit.broadcastMessage("§eAll players have been added to the queue!");
-                    Bukkit.broadcastMessage("§eWaiting for an operator to start the game with §a/game start");
+                    Bukkit.broadcastMessage("§6§l   GAME QUEUE ACTIVATED   ");
                     
                     updateScoreboard();
                     spawnPodiumNPCs();
@@ -1357,7 +1353,7 @@ public class QueuePlugin extends JavaPlugin implements Listener {
                     }
                 }
                 
-                Bukkit.broadcastMessage("§6§l=== GAME VOTING STARTED ===");
+                Bukkit.broadcastMessage("§6§l   GAME VOTING STARTED   ");
                 Bukkit.broadcastMessage("§eUse §a/vote gui §eor §a/vote <gamemode> §eto vote!");
                 Bukkit.broadcastMessage("§eVoting will last for §c2 minutes§e!");
                 votingSystem.startVoting();

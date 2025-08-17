@@ -107,6 +107,10 @@ public class SuperSmashSteves implements Listener {
                 alivePlayers.add(player);
                 playerKnockback.put(player, 0); 
                 
+                // Clear ALL potion effects before starting the game
+                for (PotionEffect effect : player.getActivePotionEffects()) {
+                    player.removePotionEffect(effect.getType());
+                }
                 
                 player.getInventory().clear();
                 player.getInventory().setArmorContents(new ItemStack[4]); 
@@ -428,6 +432,11 @@ public class SuperSmashSteves implements Listener {
         
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (!alivePlayers.contains(player)) {
+                // Clear ALL potion effects before spectator mode
+                for (PotionEffect effect : player.getActivePotionEffects()) {
+                    player.removePotionEffect(effect.getType());
+                }
+                
                 player.setGameMode(GameMode.SPECTATOR);
                 player.teleport(teleportLocation.clone().add(0, 20, 0));
                 
@@ -449,6 +458,10 @@ public class SuperSmashSteves implements Listener {
         }
         playerHolograms.remove(player);
         
+        // Clear ALL potion effects before elimination teleport
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
         
         player.setGameMode(GameMode.SPECTATOR);
         player.sendMessage("§c§lYou have been eliminated from Super Smash Steves!");
@@ -669,6 +682,11 @@ public class SuperSmashSteves implements Listener {
         Location spawn = Bukkit.getWorlds().get(0).getSpawnLocation();
         
         for (Player player : Bukkit.getOnlinePlayers()) {
+            
+            // Clear ALL potion effects before doing anything else
+            for (PotionEffect effect : player.getActivePotionEffects()) {
+                player.removePotionEffect(effect.getType());
+            }
             
             player.setWalkSpeed(0.2f);
             player.setFlySpeed(0.1f);

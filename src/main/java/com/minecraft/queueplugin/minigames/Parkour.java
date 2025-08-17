@@ -134,12 +134,12 @@ public class Parkour implements Listener {
     private void sendRules(List<Player> players) {
         for (Player player : players) {
             if (player.isOnline()) {
-                player.sendMessage("§6§l=== PARKOUR RULES ===");
+                player.sendMessage("§6§l   PARKOUR RULES   ");
                 player.sendMessage("§e• Complete the parkour course as fast as possible!");
                 player.sendMessage("§e• First 5 players to reach the §agreen concrete§e win!");
                 player.sendMessage("§e• If you fall below Y level 55, you're eliminated!");
                 player.sendMessage("§e• Stay invisible and don't move until the countdown ends!");
-                player.sendMessage("§6§l=====================");
+                player.sendMessage("§6§l                     ");
             }
         }
     }
