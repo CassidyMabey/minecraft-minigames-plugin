@@ -27,15 +27,16 @@ This plugin adds a queue system and a variety of minigames to your Minecraft ser
 
 ### Starting Games
 1. Players use `/game start` to begin the queue system
-2. The plugin automatically detects all non-creative players and adds them to the game
+2. **EVERYONE** on the server gets teleported to the selected minigame arena when it starts
 3. A voting period begins (2 minutes) where players can vote for their preferred minigame
-4. The game with the most votes is selected and starts automatically
+4. The game with the most votes is selected and **ALL PLAYERS** (except those in Creative mode) are automatically teleported and included in the game
 
 ### Voting System
 - **Smart Voting**: The previously played game is automatically excluded from the next voting round to ensure variety
 - **No Repeat Votes**: Players cannot vote for the same game multiple times in one voting session
 - **Real-time Updates**: Vote counts are displayed in the chat every 15 seconds and on the scoreboard
 - **Visual Feedback**: Progress bars show vote percentages for each game mode
+- **Universal Participation**: Whether you voted or not, **EVERYONE gets teleported and included when the game starts**
 
 ### Winner Recognition System
 After each game, the plugin features a sophisticated winner display system:
@@ -92,7 +93,8 @@ This was achieved by storing the coordinates of arena center points and using ne
 ## Usage
 ### Starting the Game
 - Use `/game start` to begin a game session
-- All non-creative players are automatically added to the queue
+- **ALL PLAYERS** on the server are automatically included (except Creative mode players)
+- **EVERYONE gets teleported** to the game arena regardless of voting participation
 - Wait for the 2-minute voting period to begin
 
 ### During Voting
@@ -100,14 +102,16 @@ This was achieved by storing the coordinates of arena center points and using ne
 - Watch real-time vote counts in chat and on the scoreboard
 - The game with the most votes wins (previous game is excluded)
 - Voting ends automatically after 2 minutes
+- **Important**: You don't need to vote to participate - ALL players are teleported when the game starts!
 
 ### Game Commands
-- `/game start` - Start a new game session
+- `/game start` - Start a new game session (teleports EVERYONE)
 - `/queue stats` - Check your personal statistics and ranking
 - `/queue join` - Manually join the queue (if available)
 
 ### Spectating and Participation
 - Players in Creative mode are automatically excluded from games
+- All other players are forcibly teleported and included in every game
 - Eliminated players can spectate ongoing matches
 - Winners are automatically added to the leaderboard and podium display
 
