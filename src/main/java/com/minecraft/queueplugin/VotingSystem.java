@@ -63,6 +63,10 @@ public class VotingSystem implements Listener {
     private int timeLeft = 120; 
     private String lastPlayedGame = null; 
     
+    // Track recent games to exclude from voting (configurable number)
+    private final List<String> recentGames = new ArrayList<>();
+    private final int MAX_RECENT_GAMES = 3; // Exclude the last 3 games played 
+    
     
     private final TntRun tntRun;
     private final Parkour parkour;
@@ -203,22 +207,32 @@ public class VotingSystem implements Listener {
         votingActive = true;
         timeLeft = 120;
         
-        
+        // Clear previous voting data
         gameVotes.clear();
         for (String gameMode : gameModes.keySet()) {
-            
-            if (!gameMode.equals(lastPlayedGame)) {
+            // Exclude all recent games, not just the last one
+            if (!recentGames.contains(gameMode)) {
                 gameVotes.put(gameMode, 0);
             }
         }
         
         playerVotes.clear();
         
-        
-        if (lastPlayedGame != null) {
-            GameModeInfo excludedGame = gameModes.get(lastPlayedGame);
-            if (excludedGame != null) {
-                Bukkit.broadcastMessage("§7" + excludedGame.displayName + " §7was excluded from this voting round!");
+        // Broadcast excluded games
+        if (!recentGames.isEmpty()) {
+            List<String> excludedNames = new ArrayList<>();
+            for (String excludedGame : recentGames) {
+                GameModeInfo excludedInfo = gameModes.get(excludedGame);
+                if (excludedInfo != null) {
+                    excludedNames.add(excludedInfo.displayName);
+                }
+            }
+            
+            if (!excludedNames.isEmpty()) {
+                String excludedMessage = excludedNames.size() == 1 ? 
+                    "§7" + excludedNames.get(0) + " §7was excluded from this voting round!" :
+                    "§7Recent games excluded from voting: §e" + String.join("§7, §e", excludedNames);
+                Bukkit.broadcastMessage(excludedMessage);
             }
         }
         
@@ -280,8 +294,14 @@ public class VotingSystem implements Listener {
     }
     
     private void startGameMode(String gameMode) {
-        
+        // Update game tracking
         lastPlayedGame = gameMode;
+        
+        // Add to recent games list and maintain size limit
+        recentGames.add(gameMode);
+        while (recentGames.size() > MAX_RECENT_GAMES) {
+            recentGames.remove(0); // Remove oldest game
+        }
         
         GameModeInfo mode = gameModes.get(gameMode);
         if (mode != null) {
@@ -504,26 +524,42 @@ public class VotingSystem implements Listener {
             player.sendMessage("§cVoting is not currently active!");
             return false;
         }
-        
+
         if (!gameModes.containsKey(gameMode.toLowerCase())) {
             player.sendMessage("§cInvalid game mode! Available modes: " + String.join(", ", gameModes.keySet()));
             return false;
         }
-        
+
         String normalizedGameMode = gameMode.toLowerCase();
         String playerName = player.getName();
         
-        
-        if (playerVotes.containsKey(playerName)) {
-            String previousVote = playerVotes.get(playerName);
-            gameVotes.put(previousVote, gameVotes.get(previousVote) - 1);
+        // Check if the game mode is excluded from voting
+        if (recentGames.contains(normalizedGameMode)) {
+            GameModeInfo mode = gameModes.get(normalizedGameMode);
+            player.sendMessage("§c" + mode.displayName + " §cis excluded from voting this round (recently played)!");
+            return false;
         }
         
-        
+        // Check if the game mode is available for voting
+        if (!gameVotes.containsKey(normalizedGameMode)) {
+            GameModeInfo mode = gameModes.get(normalizedGameMode);
+            player.sendMessage("§c" + mode.displayName + " §cis not available for voting this round!");
+            return false;
+        }
+
+        // Remove previous vote if exists
+        if (playerVotes.containsKey(playerName)) {
+            String previousVote = playerVotes.get(playerName);
+            Integer prevCount = gameVotes.get(previousVote);
+            if (prevCount != null && prevCount > 0) {
+                gameVotes.put(previousVote, prevCount - 1);
+            }
+        }
+
+        // Add new vote
         playerVotes.put(playerName, normalizedGameMode);
-        gameVotes.put(normalizedGameMode, gameVotes.get(normalizedGameMode) + 1);
-        
-        GameModeInfo mode = gameModes.get(normalizedGameMode);
+        Integer currentCount = gameVotes.get(normalizedGameMode);
+        gameVotes.put(normalizedGameMode, (currentCount != null ? currentCount : 0) + 1);        GameModeInfo mode = gameModes.get(normalizedGameMode);
         player.sendMessage("§aYou voted for " + mode.displayName + "§a!");
         
         return true;
@@ -544,6 +580,11 @@ public class VotingSystem implements Listener {
             String gameMode = entry.getKey();
             GameModeInfo mode = entry.getValue();
             
+            // Skip games that are excluded from voting (recent games)
+            if (recentGames.contains(gameMode)) {
+                continue;
+            }
+            
             ItemStack item = new ItemStack(mode.material);
             ItemMeta meta = item.getItemMeta();
             
@@ -553,10 +594,14 @@ public class VotingSystem implements Listener {
                 List<String> lore = new ArrayList<>();
                 lore.add("§7" + mode.description);
                 lore.add("");
-                lore.add("§eVotes: §a" + gameVotes.get(gameMode));
+                
+                // Get votes with null safety
+                Integer votesCount = gameVotes.get(gameMode);
+                int votes = votesCount != null ? votesCount : 0;
+                lore.add("§eVotes: §a" + votes);
                 
                 int totalVotes = gameVotes.values().stream().mapToInt(Integer::intValue).sum();
-                double percentage = totalVotes > 0 ? (double) gameVotes.get(gameMode) / totalVotes * 100 : 0;
+                double percentage = totalVotes > 0 ? (double) votes / totalVotes * 100 : 0;
                 lore.add("§ePercentage: §b" + String.format("%.1f", percentage) + "%");
                 lore.add(createPercentageBar(percentage));
                 lore.add("");
