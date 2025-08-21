@@ -495,7 +495,6 @@ public class FindButton implements Listener {
         
         for (Player player : Bukkit.getOnlinePlayers()) {
             
-            // Clear ALL potion effects before teleporting back to spawn
             for (PotionEffect effect : player.getActivePotionEffects()) {
                 player.removePotionEffect(effect.getType());
             }

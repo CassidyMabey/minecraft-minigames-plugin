@@ -1354,7 +1354,7 @@ public class QueuePlugin extends JavaPlugin implements Listener {
                 }
                 
                 Bukkit.broadcastMessage("§6§l   GAME VOTING STARTED   ");
-                Bukkit.broadcastMessage("§eUse §a/vote gui §eor §a/vote <gamemode> §eto vote!");
+                Bukkit.broadcastMessage("§eUse §a/vote §eto vote!");
                 Bukkit.broadcastMessage("§eVoting will last for §c2 minutes§e!");
                 votingSystem.startVoting();
                 return true;

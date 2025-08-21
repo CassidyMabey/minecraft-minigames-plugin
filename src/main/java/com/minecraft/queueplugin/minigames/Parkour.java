@@ -9,7 +9,9 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -137,7 +139,8 @@ public class Parkour implements Listener {
                 player.sendMessage("§6§l   PARKOUR RULES   ");
                 player.sendMessage("§e• Complete the parkour course as fast as possible!");
                 player.sendMessage("§e• First 5 players to reach the §agreen concrete§e win!");
-                player.sendMessage("§e• If you fall below Y level 55, you're eliminated!");
+                player.sendMessage("§e• If you fall or die, you'll respawn at the starting line!");
+                player.sendMessage("§e• You only lose if you don't finish before time runs out!");
                 player.sendMessage("§e• Stay invisible and don't move until the countdown ends!");
                 player.sendMessage("§6§l                     ");
             }
@@ -239,7 +242,7 @@ public class Parkour implements Listener {
         
         
         if (to.getY() < 55) {
-            eliminatePlayer(player);
+            respawnPlayer(player);
             return;
         }
         
@@ -250,6 +253,71 @@ public class Parkour implements Listener {
         if (checkLoc.getBlock().getType() == Material.GREEN_CONCRETE) {
             finishPlayer(player);
         }
+    }
+    
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (!gameActive) return;
+        
+        Player player = event.getEntity();
+        if (!alivePlayers.contains(player)) return;
+        
+        
+        event.getDrops().clear(); 
+        event.setDroppedExp(0); 
+        
+        
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline() && alivePlayers.contains(player)) {
+                respawnPlayer(player);
+            }
+        }, 1L); 
+    }
+    
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        if (!gameActive) return;
+        
+        Player player = event.getPlayer();
+        if (!alivePlayers.contains(player)) return;
+        
+        
+        event.setRespawnLocation(teleportLocation);
+        
+        
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline() && alivePlayers.contains(player)) {
+                
+                player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1, true, false));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, Integer.MAX_VALUE, 255, true, false));
+                
+                
+                player.sendMessage("§e§lYou died! Respawned at the starting line.");
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, 
+                    new TextComponent("§6§lRESPAWNED! §eTry again!"));
+            }
+        }, 1L);
+    }
+    
+    private void respawnPlayer(Player player) {
+        if (!alivePlayers.contains(player)) return;
+        
+        
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
+        
+        
+        player.teleport(teleportLocation);
+        
+        
+        player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1, true, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, Integer.MAX_VALUE, 255, true, false));
+        
+        
+        player.sendMessage("§e§lYou fell! Respawned at the starting line.");
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, 
+            new TextComponent("§6§lRESPAWNED! §eTry again!"));
     }
     
     private void eliminatePlayer(Player player) {
@@ -264,7 +332,7 @@ public class Parkour implements Listener {
         player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, Integer.MAX_VALUE, 255, true, false));
         
         player.sendMessage("§c§lYou have been eliminated from Parkour!");
-        player.sendMessage("§7You fell below Y level 55. You are now in spectator mode.");
+        player.sendMessage("§7Time ran out before you could finish. You are now in spectator mode.");
         
         
         player.teleport(teleportLocation.clone().add(0, 10, 0));

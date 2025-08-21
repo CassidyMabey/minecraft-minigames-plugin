@@ -66,6 +66,8 @@ public class SuperSmashSteves implements Listener {
     private final Set<Player> alivePlayers = new HashSet<>();
     private final Map<Player, Integer> playerKnockback = new HashMap<>(); 
     private final Map<Player, ArmorStand> playerHolograms = new HashMap<>(); 
+    private final Map<Player, Integer> playerKills = new HashMap<>(); 
+    private final Map<Player, Player> lastDamager = new HashMap<>(); 
     private BukkitTask gameTask = null;
     private BukkitTask scoreboardUpdateTask = null;
     private BukkitTask positionCheckTask = null;
@@ -94,6 +96,8 @@ public class SuperSmashSteves implements Listener {
         gameTimeLeft = 300; 
         alivePlayers.clear();
         playerKnockback.clear();
+        playerKills.clear();
+        lastDamager.clear();
         
         
         clearPlayerHolograms();
@@ -106,8 +110,9 @@ public class SuperSmashSteves implements Listener {
             if (player.isOnline()) {
                 alivePlayers.add(player);
                 playerKnockback.put(player, 0); 
+                playerKills.put(player, 0); 
                 
-                // Clear ALL potion effects before starting the game
+                
                 for (PotionEffect effect : player.getActivePotionEffects()) {
                     player.removePotionEffect(effect.getType());
                 }
@@ -253,6 +258,21 @@ public class SuperSmashSteves implements Listener {
                     
                     if (player.getLocation().getY() < DEATH_Y_LEVEL) {
                         
+                        Player killer = lastDamager.get(player);
+                        if (killer != null && alivePlayers.contains(killer)) {
+                            int currentKills = playerKills.getOrDefault(killer, 0);
+                            playerKills.put(killer, currentKills + 1);
+                            
+                            
+                            awardKillPoints(killer);
+                            
+                            killer.sendMessage("§a§lKILL! §a+2 points for knocking " + player.getName() + " out!");
+                            Bukkit.broadcastMessage("§c" + player.getName() + " §7was knocked out by §a" + killer.getName() + "§7!");
+                        } else {
+                            Bukkit.broadcastMessage("§c" + player.getName() + " §7fell out of bounds!");
+                        }
+                        
+                        
                         iterator.remove();
                         eliminatePlayer(player);
                     }
@@ -361,6 +381,9 @@ public class SuperSmashSteves implements Listener {
         if (!alivePlayers.contains(damaged) || !alivePlayers.contains(damager)) return;
         
         
+        lastDamager.put(damaged, damager);
+        
+        
         int currentKnockback = playerKnockback.getOrDefault(damaged, 0);
         int newKnockback = currentKnockback + 1;
         playerKnockback.put(damaged, newKnockback);
@@ -415,6 +438,21 @@ public class SuperSmashSteves implements Listener {
         if (!alivePlayers.contains(player)) return;
         
         
+        Player killer = lastDamager.get(player);
+        if (killer != null && alivePlayers.contains(killer)) {
+            int currentKills = playerKills.getOrDefault(killer, 0);
+            playerKills.put(killer, currentKills + 1);
+            
+            
+            awardKillPoints(killer);
+            
+            killer.sendMessage("§a§lKILL! §a+2 points for eliminating " + player.getName() + "!");
+            Bukkit.broadcastMessage("§c" + player.getName() + " §7was eliminated by §a" + killer.getName() + "§7!");
+        } else {
+            Bukkit.broadcastMessage("§c" + player.getName() + " §7was eliminated!");
+        }
+        
+        
         eliminatePlayer(player);
         
         
@@ -432,7 +470,7 @@ public class SuperSmashSteves implements Listener {
         
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (!alivePlayers.contains(player)) {
-                // Clear ALL potion effects before spectator mode
+                
                 for (PotionEffect effect : player.getActivePotionEffects()) {
                     player.removePotionEffect(effect.getType());
                 }
@@ -458,7 +496,7 @@ public class SuperSmashSteves implements Listener {
         }
         playerHolograms.remove(player);
         
-        // Clear ALL potion effects before elimination teleport
+        
         for (PotionEffect effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
         }
@@ -606,6 +644,38 @@ public class SuperSmashSteves implements Listener {
         }
     }
     
+    private void awardKillPoints(Player killer) {
+        try {
+            
+            File file = new File(plugin.getDataFolder(), "winners.json");
+            Map<String, PlayerStats> playerData = new HashMap<>();
+            
+            if (file.exists()) {
+                try (FileReader reader = new FileReader(file)) {
+                    Type type = new TypeToken<Map<String, PlayerStats>>(){}.getType();
+                    Map<String, PlayerStats> loaded = gson.fromJson(reader, type);
+                    if (loaded != null) {
+                        playerData = loaded;
+                    }
+                }
+            }
+            
+            
+            PlayerStats stats = playerData.getOrDefault(killer.getName(), new PlayerStats(killer.getName(), 0));
+            stats.points += 2;
+            playerData.put(killer.getName(), stats);
+            
+            
+            try (FileWriter writer = new FileWriter(file)) {
+                gson.toJson(playerData, writer);
+            }
+            
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to award kill points to " + killer.getName() + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
     private void awardPointsAndResetPlayers() {
         try {
             
@@ -683,7 +753,7 @@ public class SuperSmashSteves implements Listener {
         
         for (Player player : Bukkit.getOnlinePlayers()) {
             
-            // Clear ALL potion effects before doing anything else
+            
             for (PotionEffect effect : player.getActivePotionEffects()) {
                 player.removePotionEffect(effect.getType());
             }

@@ -63,9 +63,9 @@ public class VotingSystem implements Listener {
     private int timeLeft = 120; 
     private String lastPlayedGame = null; 
     
-    // Track recent games to exclude from voting (configurable number)
+    
     private final List<String> recentGames = new ArrayList<>();
-    private final int MAX_RECENT_GAMES = 3; // Exclude the last 3 games played 
+    private final int MAX_RECENT_GAMES = 3; 
     
     
     private final TntRun tntRun;
@@ -206,10 +206,10 @@ public class VotingSystem implements Listener {
         votingActive = true;
         timeLeft = 120;
         
-        // Clear previous voting data
+        
         gameVotes.clear();
         for (String gameMode : gameModes.keySet()) {
-            // Exclude all recent games, not just the last one
+            
             if (!recentGames.contains(gameMode)) {
                 gameVotes.put(gameMode, 0);
             }
@@ -217,7 +217,7 @@ public class VotingSystem implements Listener {
         
         playerVotes.clear();
         
-        // Broadcast excluded games
+        
         if (!recentGames.isEmpty()) {
             List<String> excludedNames = new ArrayList<>();
             for (String excludedGame : recentGames) {
@@ -293,13 +293,13 @@ public class VotingSystem implements Listener {
     }
     
     private void startGameMode(String gameMode) {
-        // Update game tracking
+        
         lastPlayedGame = gameMode;
         
-        // Add to recent games list and maintain size limit
+        
         recentGames.add(gameMode);
         while (recentGames.size() > MAX_RECENT_GAMES) {
-            recentGames.remove(0); // Remove oldest game
+            recentGames.remove(0); 
         }
         
         GameModeInfo mode = gameModes.get(gameMode);
@@ -414,7 +414,7 @@ public class VotingSystem implements Listener {
         Score timeScore = voting.getScore("§eTime: §c" + formatTime(timeLeft));
         timeScore.setScore(20);
         
-        // Empty line between time and gamemodes
+        
         Score emptyLine = voting.getScore(" ");
         emptyLine.setScore(19);
         
@@ -439,11 +439,11 @@ public class VotingSystem implements Listener {
             
             String color;
             if (i == 0) {
-                color = "§a"; // Green for 1st place
+                color = "§a"; 
             } else if (i == 1) {
-                color = "§e"; // Yellow for 2nd place  
+                color = "§e"; 
             } else {
-                color = "§c"; // Red for 3rd place
+                color = "§c"; 
             }
             
             String gamemodeText = color + (i + 1) + ". " + mode.displayName + " (" + String.format("%.1f", percentage) + "%)";
@@ -508,21 +508,21 @@ public class VotingSystem implements Listener {
         String normalizedGameMode = gameMode.toLowerCase();
         String playerName = player.getName();
         
-        // Check if the game mode is excluded from voting
+        
         if (recentGames.contains(normalizedGameMode)) {
             GameModeInfo mode = gameModes.get(normalizedGameMode);
             player.sendMessage("§c" + mode.displayName + " §cis excluded from voting this round (recently played)!");
             return false;
         }
         
-        // Check if the game mode is available for voting
+        
         if (!gameVotes.containsKey(normalizedGameMode)) {
             GameModeInfo mode = gameModes.get(normalizedGameMode);
             player.sendMessage("§c" + mode.displayName + " §cis not available for voting this round!");
             return false;
         }
 
-        // Remove previous vote if exists
+        
         if (playerVotes.containsKey(playerName)) {
             String previousVote = playerVotes.get(playerName);
             Integer prevCount = gameVotes.get(previousVote);
@@ -531,7 +531,7 @@ public class VotingSystem implements Listener {
             }
         }
 
-        // Add new vote
+        
         playerVotes.put(playerName, normalizedGameMode);
         Integer currentCount = gameVotes.get(normalizedGameMode);
         gameVotes.put(normalizedGameMode, (currentCount != null ? currentCount : 0) + 1);
@@ -557,7 +557,7 @@ public class VotingSystem implements Listener {
             String gameMode = entry.getKey();
             GameModeInfo mode = entry.getValue();
             
-            // Skip games that are excluded from voting (recent games)
+            
             if (recentGames.contains(gameMode)) {
                 continue;
             }
@@ -572,7 +572,7 @@ public class VotingSystem implements Listener {
                 lore.add("§7" + mode.description);
                 lore.add("");
                 
-                // Get votes with null safety
+                
                 Integer votesCount = gameVotes.get(gameMode);
                 int votes = votesCount != null ? votesCount : 0;
                 lore.add("§eVotes: §a" + votes);
